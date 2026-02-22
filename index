@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Progress</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --card: #f7f7f8;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --shadow: 0 8px 24px rgba(17,24,39,.06);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+
+    /* 关键：固定高度，适配 Notion embed */
+    html, body{
+      height: 220px;
+      overflow: hidden;
+    }
+
+    body{
+      margin:0;
+      padding:12px;
+      background: var(--bg);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "PingFang SC","Hiragino Sans GB","Microsoft YaHei",
+                   Helvetica, Arial;
+      color: var(--text);
+    }
+
+    .wrap{
+      width: 100%;
+      height: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      display:flex;
+    }
+
+    .card{
+      width: 100%;
+      height: 100%;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+
+    .time{
+      font-variant-numeric: tabular-nums;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      text-align: left;
+      padding: 2px 2px 0;
+    }
+
+    .grid{
+      flex:1;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-content:center;
+    }
+
+    .row{
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+
+    .label{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing:.3px;
+    }
+
+    .value{
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="time" id="clock">--:--:--</div>
+
+      <div class="grid">
+        <div class="row">
+          <div class="label">Year</div>
+          <div class="value" id="year">--/--</div>
+        </div>
+        <div class="row">
+          <div class="label">Month</div>
+          <div class="value" id="month">--/--</div>
+        </div>
+        <div class="row">
+          <div class="label">Week</div>
+          <div class="value" id="week">--/--</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    function daysInMonth(y, mIndex){ // mIndex: 0-11
+      return new Date(y, mIndex + 1, 0).getDate();
+    }
+
+    function dayOfYear(d){
+      const start = new Date(d.getFullYear(), 0, 1);
+      const diff = d - start;
+      return Math.floor(diff / 86400000) + 1; // 1-based
+    }
+
+    function daysInYear(y){
+      return ((y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)) ? 366 : 365;
+    }
+
+    // Week: 周一作为一周开始，显示本周第几天/7（周一=1 ... 周日=7）
+    function weekProgress(d){
+      const jsDay = d.getDay(); // 0 Sun ... 6 Sat
+      const mondayBased = (jsDay === 0) ? 7 : jsDay; // Mon=1 ... Sun=7
+      return { current: mondayBased, total: 7 };
+    }
+
+    function render(){
+      const now = new Date();
+
+      document.getElementById("clock").textContent =
+        `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
+      const y = now.getFullYear();
+      document.getElementById("year").textContent =
+        `${dayOfYear(now)}/${daysInYear(y)}`;
+
+      const mIndex = now.getMonth();
+      document.getElementById("month").textContent =
+        `${now.getDate()}/${daysInMonth(y, mIndex)}`;
+
+      const w = weekProgress(now);
+      document.getElementById("week").textContent =
+        `${w.current}/${w.total}`;
+    }
+
+    render();
+    setInterval(render, 1000);
+  </script>
+</body>
+</html>
